@@ -9,4 +9,5 @@ router.get('/get-details/:id', productContronller.getDetailsProduct);
 router.delete('/delete/:id', productContronller.deleteProduct);
 router.get('/getAll', productContronller.getAllProduct);
 
+
 module.exports = router;

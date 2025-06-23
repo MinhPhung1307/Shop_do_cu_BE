@@ -12,4 +12,5 @@ router.get('/getAll', authMiddleware, userContronller.getAllUser);
 router.get('/get-details/:id', authUserMiddleware, userContronller.getDetailsUser);
 router.post('/refresh-token', userContronller.refreshToken);
 
+
 module.exports = router;
