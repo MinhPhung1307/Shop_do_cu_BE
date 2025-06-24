@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/UserModel');
 const { genneralAccessToken, genneralRefreshToken } = require('./JwtService');
+const { sendVerificationEmail } = require('./emailService');
 
 
 const createUser = (newUser) => {
@@ -15,22 +17,64 @@ const createUser = (newUser) => {
                 })
             }
             const hash = bcrypt.hashSync(password, 10);
-            const createdUser = await User.create({
+            const createdUser = new User({
                 name, 
                 email, 
                 password: hash, 
                 address,
                 phone
-            })
+            });
+            await createdUser.save();
+            const token = jwt.sign({ id: createdUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const link = `http://localhost:3000/verify-email/${token}`;
+            sendVerificationEmail(email, link);
             if(createdUser) {
                 resolve({
                     status: 'OK',
-                    message: 'SUCCESS',
+                    message: 'Vui lòng kiểm tra email để xác thực.',
                     data: createdUser
                 }) 
             }
         } catch (error) {
             reject(error)
+        }
+    })
+}
+
+const verifyEmail = (token) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await User.findById(decoded.id);
+            if(!user) {
+                resolve({
+                    status: 'ERR',
+                    title: 'Xác minh thất bại!',
+                    message: 'Rất tiếc, chúng tôi không thể xác thực email của bạn. Vui lòng kiểm tra lại thông tin hoặc thử lại sau.'
+                })
+            }
+            if(user.isVerified) {
+                resolve({
+                    status: 'OK',
+                    title: 'Xác minh thành công!',               
+                    message: 'Email của bạn đã được xác minh trước đó. Tài khoản của bạn hiện đang được kích hoạt và sẵn sàng sử dụng.',
+
+                })
+            }
+            user.isVerified = true;
+            await user.save();
+            resolve({
+                status: 'OK',
+                title: 'Xác minh thành công!',
+                message: 'Email của bạn đã được xác minh thành công. Tài khoản của bạn hiện đã được kích hoạt và sẵn sàng sử dụng.',
+                data: user
+            }) 
+        } catch (error) {
+            resolve({
+                status: 'ERR',
+                title: 'Xác minh thất bại!',
+                message: 'Rất tiếc, chúng tôi không thể xác thực email của bạn. Vui lòng kiểm tra lại thông tin hoặc thử lại sau.'
+            })
         }
     })
 }
@@ -43,14 +87,20 @@ const loginUser = (userLogin) => {
             if(user === null) {
                 resolve({
                     status: 'ERR',
-                    message: 'The user is not defined'
+                    message: 'Tài khoản không tồn tại.'
+                })
+            }
+            if(!user.isVerified) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Email chưa được xác thực. Vui lòng kiểm tra hộp thư và xác thực email trước khi đăng nhập.'
                 })
             }
             const comparePassword = bcrypt.compareSync(password, user.password);
             if(!comparePassword) {
                 resolve({
                     status: 'ERR',
-                    message: 'The user or password is incorrect'
+                    message: 'Email hoặc mật khẩu không đúng.'
                 })
             }      
             const access_token = await genneralAccessToken({
@@ -154,6 +204,7 @@ const getDetailsUser = (id) => {
 
 module.exports = {    
     createUser,
+    verifyEmail,
     loginUser,
     updateUser,
     deleteUser,

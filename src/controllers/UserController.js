@@ -4,7 +4,7 @@ const JwtService = require('../services/JwtService');
 const createUser = async (req, res) => {
     try {   
         const { name, email, password, confirmPassword, address, phone } = req.body;
-        const isCheckEmail =  email.includes('@ut.edu.vn');
+        const isCheckEmail =  /^[a-zA-Z0-9._%+-]+@ut\.edu\.vn$/;
         if(!name || !email || !password || !confirmPassword || !address || !phone){
             return res.status(200).json({
                 status: 'ERR',
@@ -23,6 +23,18 @@ const createUser = async (req, res) => {
         }
         const response = await UserService.createUser(req.body)
         return res.status(200).json(response)
+    } catch (error) {
+        return res.status(404).json({
+            message: error
+        })
+    }
+}
+
+const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.query;
+        const response = await UserService.verifyEmail(token);
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(404).json({
             message: error
@@ -154,6 +166,7 @@ const refreshToken = async (req, res) => {
 
 module.exports = {    
     createUser, 
+    verifyEmail,
     loginUser,
     logoutUser,
     updateUser,
