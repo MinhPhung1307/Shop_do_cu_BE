@@ -4,15 +4,18 @@ const Product = require("../models/ProductModel");
 const createProduct = (newProduct) => {
   return new Promise(async (resolve, reject) => {
     // Các biến chứa các trường dữ liệu của sản phẩm mới
-    const { name, image, type, price, description } = newProduct;
+    const { images, name, price, used, category, description, _iduser } =
+      newProduct;
     try {
       // Tiến hành tạo mới
       const createdProduct = await Product.create({
+        images, // hình ảnh sản phẩm
         name, // tên sản phẩm
-        image, // hình ảnh sản phẩm
-        type, // loại sản phẩm
         price, // giá sản phẩm
+        used, // thời gian đã sử dụng sản phẩm
+        category, // loại sản phẩm
         description, // mô tả sản phẩm
+        _iduser, // id người đăng
       });
       // Kiểm tra xem sản phẩm đã được tạo thành công hay chưa
       if (createdProduct) {

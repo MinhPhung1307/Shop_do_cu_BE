@@ -1,37 +1,61 @@
 const ProductService = require("../services/ProductService");
-
+const fs = require("fs");
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
   try {
-    // Lấy dữ liệu từ body của request
-    const { name, image, type, price, description } = req.body;
-    // Kiểm tra xem các trường dữ liệu có được cung cấp hay không
+    // Nếu dùng multer, req.files là mảng các file ảnh
+    const images = req.files
+      ? req.files.map((file) => file.path)
+      : req.body.images;
+    const { name, price, used, category, description, _iduser } = req.body;
+    const priceNumber = Number(price); // chuyển sang số
     if (
+      !images ||
+      images.length === 0 ||
       !name ||
-      !image ||
-      !type ||
-      !price ||
-      !countInStock ||
-      !rating ||
-      !description
+      !priceNumber ||
+      !used ||
+      !category ||
+      !_iduser
     ) {
-      // Nếu không có trường nào được cung cấp, trả về lỗi
-      return res.status(200).json({
-        status: "ERR", // Trạng thái lỗi
-        message: "Nhập đầy đủ thông tin sản phẩm", // Thông báo lỗi
+      if (req.files) {
+        // forEach là phương thức duyệt qua từng phần tử
+        req.files.forEach((file) => {
+          try {
+            // xóa file khi đăng thất bại
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error("Xóa file thất bại:", file.path);
+          }
+        });
+      }
+      return res
+        .status(400)
+        .json({ status: "ERR", message: "Missing required fields" });
+    }
+    const product = await ProductService.createProduct({
+      images,
+      name,
+      price: priceNumber,
+      used,
+      category,
+      description,
+      _iduser,
+    });
+    return res.status(201).json(product);
+  } catch (error) {
+    console.log(error);
+    // XÓA FILE nếu có lỗi trong quá trình tạo sản phẩm
+    if (req.files) {
+      req.files.forEach((file) => {
+        fs.unlink(file.path, (err) => {
+          if (err) console.error("Xóa file thất bại:", file.path);
+        });
       });
     }
-    // Gọi Service để tạo sản phẩm mới
-    const response = await ProductService.createProduct(req.body);
-    // Trả về kết quả
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(404).json({
-      message: error,
-    });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 // Cập nhật sản phẩm
 const updateProduct = async (req, res) => {
   try {
