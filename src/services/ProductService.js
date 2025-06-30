@@ -1,149 +1,172 @@
-const Product = require('../models/ProductModel');
+const Product = require("../models/ProductModel");
 
+// Tao sản phẩm mới
 const createProduct = (newProduct) => {
-    return new Promise(async (resolve, reject) => {
-        const { name, image, type, price, countInStock, rating, description} = newProduct
-        try {
-            const CheckProduct = await Product.findOne({name})
-            if(CheckProduct !== null) {
-                resolve({
-                    status: 'OK',
-                    message: 'The name of product is alrealy'
-                })
-            }
-            const createdProduct = await Product.create({
-                name,
-                image,
-                type,
-                price,
-                countInStock,
-                rating,
-                description
-            })
-            if(createdProduct) {
-                resolve({
-                    status: 'OK',
-                    message: 'SUCCESS',
-                    data: createdProduct
-                }) 
-            }
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+  return new Promise(async (resolve, reject) => {
+    // Các biến chứa các trường dữ liệu của sản phẩm mới
+    const { images, name, price, used, category, description, _iduser } =
+      newProduct;
+    try {
+      // Tiến hành tạo mới
+      const createdProduct = await Product.create({
+        images, // hình ảnh sản phẩm
+        name, // tên sản phẩm
+        price, // giá sản phẩm
+        used, // thời gian đã sử dụng sản phẩm
+        category, // loại sản phẩm
+        description, // mô tả sản phẩm
+        _iduser, // id người đăng
+      });
+      // Kiểm tra xem sản phẩm đã được tạo thành công hay chưa
+      if (createdProduct) {
+        resolve({
+          status: "OK", // trạng thái thành công
+          message: "Thành công", // thông báo thành công
+          data: createdProduct,
+        });
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
+// Cập nhật sản phẩm
 const updateProduct = (id, data) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const CheckProduct = await Product.findOne({_id: id})
-            if(CheckProduct === null) {
-                resolve({
-                    status: 'OK',
-                    message: 'The product is not defined'
-                })
-            }
-            const updatedProduct = await Product.findByIdAndUpdate(id, data, { new: true });
-            resolve({
-                status: 'OK',
-                message: 'SUCCESS',
-                data: updatedProduct
-            }) 
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+  return new Promise(async (resolve, reject) => {
+    try {
+      const CheckProduct = await Product.findOne({ _id: id }); // tạo biến chứa id sản phẩm cần cập nhật
+      // kiểm tra xem sản phẩm có tồn tại hay không
+      if (CheckProduct === null) {
+        resolve({
+          status: "OK", // trạng thái thành công
+          message: "Sản phẩm không được xác định", // thông báo lỗi
+        });
+      }
+      // nếu sản phẩm tồn tại thì tiến hành cập nhật
+      const updatedProduct = await Product.findByIdAndUpdate(id, data, {
+        new: true, // trả về sản phẩm đã cập nhật
+      });
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Thanh công", // thông báo thành công
+        data: updatedProduct, // dữ liệu sản phẩm đã cập nhật
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
+// // Lấy chi tiết sản phẩm
 const getDetailsProduct = (id) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const product = await Product.findOne({_id: id})
-            if(product === null) {
-                resolve({
-                    status: 'OK',
-                    message: 'The product is not defined'
-                })
-            }
-            resolve({
-                status: 'OK',
-                message: 'success',
-                data: product
-            }) 
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+  return new Promise(async (resolve, reject) => {
+    try {
+      const product = await Product.findOne({ _id: id }); // tạo biến chứa id sản phẩm cần lấy chi tiết
+      // kiểm tra xem sản phẩm có tồn tại hay không
+      if (product === null) {
+        resolve({
+          status: "OK", // trạng thái thành công
+          message: "Sản phẩm không được xác định", // thông báo lỗi
+        });
+      }
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Thanh công", // thông báo thành công
+        data: product, // dữ liệu sản phẩm
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
+// Xóa sản phẩm
 const deleteProduct = (id) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const CheckProduct = await Product.findOne({_id: id})
-            if(CheckProduct === null) {
-                resolve({
-                    status: 'OK',
-                    message: 'The product is not defined'
-                })
-            }
-            await Product.findByIdAndDelete(id);
-            resolve({
-                status: 'OK',
-                message: 'delete product is success',
-            }) 
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+  return new Promise(async (resolve, reject) => {
+    try {
+      const CheckProduct = await Product.findOne({ _id: id }); // tạo biến chứa id sản phẩm cần xóa
+      // kiểm tra xem sản phẩm có tồn tại hay không
+      if (CheckProduct === null) {
+        resolve({
+          status: "OK", // trạng thái thành công
+          message: "Sản phẩm không được xác định", // thông báo lỗi
+        });
+      }
+      // nếu sản phẩm tồn tại thì tiến hành xóa
+      await Product.findByIdAndDelete(id);
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Xóa sản phẩm thành công", // thông báo thành công
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
+//phân loại theo Phân loại
 const getAllProduct = (limit = 2, page = 1, sort = null, filter = null) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const totalProduct = await Product.countDocuments();
-            if(filter) {
-                const allProductFilter = await Product.find({ [filter[0]]: { '$regex': filter[1] }}).limit(limit).skip(limit * (page - 1))
-                resolve({
-                    status: 'OK',
-                    message: 'get all product is success',
-                    data: allProductFilter,
-                    total: totalProduct,
-                    pageCurrent: page,
-                    totalPage: Math.ceil(totalProduct / limit)
-                }) 
-            }
-            if(sort) {
-                const objectSort = {};
-                objectSort[sort[1]] = sort[0]
-                const allProductSort = await Product.find().limit(limit).skip(limit * (page - 1)).sort(objectSort)
-                resolve({
-                    status: 'OK',
-                    message: 'get all product is success',
-                    data: allProductSort,
-                    total: totalProduct,
-                    pageCurrent: page,
-                    totalPage: Math.ceil(totalProduct / limit)
-                }) 
-            }
-            const allProduct = await Product.find().limit(limit).skip(limit * (page - 1))
-            resolve({
-                status: 'OK',
-                message: 'get all product is success',
-                data: allProduct,
-                total: totalProduct,
-                pageCurrent: page,
-                totalPage: Math.ceil(totalProduct / limit)
-            }) 
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+  return new Promise(async (resolve, reject) => {
+    try {
+      const totalProduct = await Product.countDocuments();
+      // điều kiện thỏa fillter
+      if (filter) {
+        const [field, value] = filter; // filler là trường dữ liệu và giá trị
+        const allProductFilter = await Product.find({ [field]: value }) // tìm trường theo giá trị
+          .limit(limit) // số lượng sản phẩm tối đa
+          .skip(limit * (page - 1)) // bỏ qua số lượng sản phẩm đã hiển thị
+          .lean(); // chuyển đổi kết quả thành đối tượng JavaScript thuần túy
+        const totalFilter = await Product.countDocuments({ [field]: value }); // đếm số lượng sản phẩm theo điều kiện filter
+
+        resolve({
+          status: "OK", // trang thái thành công
+          message: `Hiện sản phẩm thành công`, // thông báo
+          data: allProductFilter, // dữ liệu sản phẩm
+          total: totalFilter, // tổng số sản phẩm theo điều kiện filter
+          pageCurrent: page, // trang hiện tại
+          totalPage: Math.ceil(totalFilter / limit), // tổng số trang
+        });
+      }
+      // điều kiện sắp xếp
+      if (sort) {
+        const objectSort = {}; // tạo một đối tượng để lưu trữ điều kiện sắp xếp
+        objectSort[sort[1]] = sort[0]; // sort là mảng, phần tử đầu tiên là thứ tự sắp xếp (1 hoặc -1), phần tử thứ hai là trường dữ liệu cần sắp xếp
+        const allProductSort = await Product.find() // tìm tất cả sản phẩm
+          .limit(limit) // giới hạn số lượng sản phẩm tối đa
+          .skip(limit * (page - 1)) // bỏ qua số lượng sản phẩm đã hiển thị
+          .sort(objectSort); // sắp xếp theo điều kiện đã tạo
+        resolve({
+          status: "OK",
+          message: "Lấy sản phẩm đã sắp xếp thành công",
+          data: allProductSort, // dữ liệu sản phẩm đã sắp xếp
+          total: totalProduct, // tổng số sản phẩm
+          pageCurrent: page, // trang hiện tại
+          totalPage: Math.ceil(totalProduct / limit), // tổng số trang
+        });
+      }
+      // nếu không có điều kiện filter và sort thì lấy tất cả sản phẩm
+      const allProduct = await Product.find()
+        .limit(limit) // giới hạn số lượng sản phẩm tối đa
+        .skip(limit * (page - 1)); // bỏ qua số lượng sản phẩm đã hiển thị
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Lấy tất cả sản phẩm thành công", // thông báo
+        data: allProduct, // dữ liệu sản phẩm
+        total: totalProduct, // tổng số sản phẩm
+        pageCurrent: page, // trang hiện tại
+        totalPage: Math.ceil(totalProduct / limit), // tổng số trang
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 module.exports = {
-    createProduct,
-    updateProduct,
-    getDetailsProduct,
-    deleteProduct,
-    getAllProduct
-}
+  createProduct,
+  updateProduct,
+  getDetailsProduct,
+  deleteProduct,
+  getAllProduct,
+};
