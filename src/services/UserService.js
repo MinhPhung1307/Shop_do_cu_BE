@@ -96,13 +96,15 @@ const loginUser = (userLogin) => {
                     message: 'Email chưa được xác thực. Vui lòng kiểm tra hộp thư và xác thực email trước khi đăng nhập.'
                 })
             }
-            const comparePassword = bcrypt.compareSync(password, user.password);
-            if(!comparePassword) {
-                resolve({
-                    status: 'ERR',
-                    message: 'Email hoặc mật khẩu không đúng.'
-                })
-            }      
+            if(!user.isAdmin) {
+                const comparePassword = bcrypt.compareSync(password, user.password);
+                if(!comparePassword) {
+                    resolve({
+                        status: 'ERR',
+                        message: 'Email hoặc mật khẩu không đúng.'
+                    })
+                }      
+            }
             const access_token = await genneralAccessToken({
                 id: user._id,
                 isAdmin: user.isAdmin
