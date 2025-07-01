@@ -8,8 +8,7 @@ const userSchema = new mongoose.Schema(
         address: { type: String, required: true },
         phone: { type: String, required: true },
         isVerified: { type: Boolean, default: false },
-        // access_token: { type: String, required: true },
-        // refresh_token: { type: String, required: true },
+        avatar: { type: String, default: '' },
     },
     {
         timestamps: true,

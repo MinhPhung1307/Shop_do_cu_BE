@@ -193,7 +193,7 @@ const getDetailsUser = (id) => {
             }
             resolve({
                 status: 'OK',
-                message: 'success',
+                message: 'Cập nhật thành công',
                 data: user
             }) 
         } catch (error) {
