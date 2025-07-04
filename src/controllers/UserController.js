@@ -1,5 +1,7 @@
 const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
+const mongoose = require("mongoose");
+const User = require("../models/UserModel");
 
 const createUser = async (req, res) => {
   try {
@@ -171,6 +173,39 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const getPublicUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Kiểm tra id hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "ID không hợp lệ",
+      });
+    }
+
+    const user = await User.findById(id).select("_id name avatar");
+    if (!user) {
+      return res.status(404).json({
+        status: "ERR",
+        message: "Không tìm thấy user",
+      });
+    }
+
+    return res.status(200).json({
+      status: "OK",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Lỗi getPublicUser:", error);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Lỗi server khi lấy thông tin user công khai",
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -181,4 +216,5 @@ module.exports = {
   getAllUser,
   getDetailsUser,
   refreshToken,
+  getPublicUser,
 };
