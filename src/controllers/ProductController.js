@@ -145,10 +145,24 @@ const getAllProduct = async (req, res) => {
   }
 };
 
+// Xóa sản phẩm
+const deleteAllProduct = async () => {
+  try {
+    // Gọi Service để xóa sản phẩm
+    const response = await ProductService.deleteAllProduct();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
   getDetailsProduct,
   deleteProduct,
   getAllProduct,
+  deleteAllProduct
 };

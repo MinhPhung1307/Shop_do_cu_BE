@@ -29,4 +29,6 @@ router.get("/get-details/:id", productContronller.getDetailsProduct);
 router.delete("/delete/:id", productContronller.deleteProduct);
 router.get("/getproduct", productContronller.getAllProduct);
 
+router.delete("/deletes", productContronller.deleteAllProduct);
+
 module.exports = router;

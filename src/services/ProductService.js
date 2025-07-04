@@ -163,10 +163,26 @@ const getAllProduct = (limit = 2, page = 1, sort = null, filter = null) => {
   });
 };
 
+// Xóa all sản phẩm
+const deleteAllProduct = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Product.deleteMany({}); // Xóa tất cả tài liệu trong collection Product
+      resolve({
+        status: "OK",
+        message: "Đã xóa tất cả sản phẩm thành công",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createProduct,
   updateProduct,
   getDetailsProduct,
   deleteProduct,
   getAllProduct,
+  deleteAllProduct
 };
