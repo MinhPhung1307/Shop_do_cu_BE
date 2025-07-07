@@ -27,7 +27,7 @@ const createUser = async (req, res) => {
     } else if (password !== confirmPassword) {
       return res.status(200).json({
         status: "ERR",
-        message: "The password is equal confirmPassword",
+        message: "Xác nhận mật khẩu không đúng",
       });
     }
     const response = await UserService.createUser(req.body);
@@ -102,8 +102,38 @@ const updateUser = async (req, res) => {
     const response = await UserService.updateUser(userId, data);
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(404).json({
-      message: error,
+    console.error('Update user error:', error);
+    return res.status(500).json({
+      status: 'ERROR',
+      message: error.message || 'Internal server error'
+    });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const data = req.body;
+    const { newPassword, confirmPassword } = data
+    if (!userId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The user is required",
+      });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "Xác nhận mật khẩu không đúng",
+      });
+    }
+    const response = await UserService.updatePassword(userId, data);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error('Update user error:', error);
+    return res.status(500).json({
+      status: 'ERROR',
+      message: error.message || 'Internal server error'
     });
   }
 };
@@ -217,4 +247,5 @@ module.exports = {
   getDetailsUser,
   refreshToken,
   getPublicUser,
+  updatePassword
 };

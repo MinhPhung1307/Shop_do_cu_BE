@@ -102,7 +102,7 @@ const loginUser = (userLogin) => {
                     status: 'ERR',
                     message: 'Email hoặc mật khẩu không đúng.'
                 })
-            }      
+            }   
             const access_token = await genneralAccessToken({
                 id: user._id,
                 isAdmin: user.isAdmin
@@ -113,7 +113,7 @@ const loginUser = (userLogin) => {
             })
             resolve({
                 status: 'OK',
-                message: 'SUCCESS',
+                message: 'Cập nhật thông tin thành công',
                 access_token,
                 refresh_token
             }) 
@@ -138,6 +138,38 @@ const updateUser = (id, data) => {
                 status: 'OK',
                 message: 'SUCCESS',
                 data: updatedUser
+            }) 
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const updatePassword = (id, data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const { curPassword, newPassword } = data
+            const user = await User.findOne({_id: id})
+            if(user === null) {
+                resolve({
+                    status: 'OK',
+                    message: 'The user is not defined'
+                })
+            }
+            const comparePassword = bcrypt.compareSync(curPassword, user.password);
+            if(!comparePassword) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Mật khẩu cũ không đúng.'
+                })
+            }
+            else {
+                const hashPassword = bcrypt.hashSync(newPassword, 10);
+                await User.findByIdAndUpdate(id, {password : hashPassword}, { new: true });
+            }
+            resolve({
+                status: 'OK',
+                message: 'Cập nhập mật khẩu thành công',
             }) 
         } catch (error) {
             reject(error)
@@ -210,4 +242,5 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
+    updatePassword
 }
