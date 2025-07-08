@@ -158,11 +158,39 @@ const deleteAllProduct = async () => {
   }
 };
 
+// hàm đấu giá
+const placeBid = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { amount, bidderId } = req.body;
+
+    if (!productId || !amount || !bidderId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Thiếu thông tin đặt giá",
+      });
+    }
+    const response = await ProductService.placeBid(productId, {
+      amount: Number(amount),
+      bidderId,
+    });
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Lỗi server",
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
   getDetailsProduct,
   deleteProduct,
   getAllProduct,
-  deleteAllProduct
+  deleteAllProduct,
+  placeBid,
 };
