@@ -11,6 +11,15 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     status: { type: String, default: "check" },
     _iduser: { type: String, required: true },
+    // danh sách đấu giá
+    bids: [
+      {
+        amount: { type: Number },
+        bidderId: { type: String },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+    auctionEndTime: { type: Date, default: null }, // Trường mới để lưu thời gian kết thúc đấu giá
   },
   { timestamps: true }
 );

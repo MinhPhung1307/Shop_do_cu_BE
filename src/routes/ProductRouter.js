@@ -25,8 +25,11 @@ router.put("/update/:id", authUserMiddleware, productContronller.updateProduct);
 router.get("/get-details/:id", productContronller.getDetailsProduct);
 router.delete("/delete/:id", productContronller.deleteProduct);
 router.get("/getproduct", productContronller.getAllProduct);
+
 router.get("/getproduct-check", authMiddleware, productContronller.getAllProductCheck);
 
+
 router.delete("/deletes", productContronller.deleteAllProduct);
+router.put("/bid/:id", productContronller.placeBid);
 
 module.exports = router;

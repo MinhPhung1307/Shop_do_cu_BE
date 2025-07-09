@@ -194,6 +194,105 @@ const deleteAllProduct = () => {
   });
 };
 
+// hàm đấu giá
+const placeBid = (productId, bidData) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return resolve({
+          status: "ERR",
+          message: "Sản phẩm không tồn tại",
+        });
+      }
+      const currentTime = new Date();
+      let currentAuctionEndTime = new Date(
+        product.createdAt.getTime() + 48 * 60 * 60 * 1000
+      );
+      product.auctionEndTime = currentAuctionEndTime;
+      // Xác định giá thầu cao nhất hiện tại.
+      // Nếu chưa có giá thầu nào, giá sàn để bắt đầu đấu giá là product.price / 2.
+      const minStartingBid = product.price / 2;
+      const highestBid =
+        product.bids.length > 0
+          ? Math.max(...product.bids.map((b) => b.amount))
+          : minStartingBid; // Nếu chưa có bid, giá cao nhất để so sánh là giá sàn khởi điểm
+
+      // --- Bắt đầu các điều kiện kiểm tra giá thầu ---
+
+      // 1. Kiểm tra giá thầu tối đa: Không được lớn hơn product.price (giá mua ngay)
+      if (bidData.amount > product.price) {
+        return resolve({
+          status: "ERR",
+          message: `Giá đấu giá không được lớn hơn giá mua ngay: ${product.price.toLocaleString(
+            "vi-VN"
+          )} VND`,
+        });
+      }
+
+      // 2. Kiểm tra giá thầu tối thiểu: Phải lớn hơn giá cao nhất hiện tại
+      // (và tự động lớn hơn hoặc bằng product.price / 2 nếu là bid đầu tiên)
+      if (bidData.amount <= highestBid) {
+        return resolve({
+          status: "ERR",
+          message: `Giá đấu giá phải lớn hơn giá hiện tại: ${highestBid.toLocaleString(
+            "vi-VN"
+          )} VND`,
+        });
+      }
+
+      // --- Kết thúc các điều kiện kiểm tra giá thầu ---
+      const timeLeftMs =
+        currentAuctionEndTime.getTime() - currentTime.getTime();
+      const oneHourInMs = 60 * 60 * 1000;
+      const extensionAmountMs = 1 * 60 * 60 * 1000; // Gia hạn thêm 1 giờ
+      // Nếu thời gian còn lại nhỏ hơn hoặc bằng 1 giờ VÀ đấu giá vẫn đang diễn ra
+      if (timeLeftMs <= oneHourInMs && timeLeftMs > 0) {
+        // Gia hạn thời gian kết thúc đấu giá từ thời điểm hiện tại của bid
+        const newCalculatedEndTime = new Date(
+          currentAuctionEndTime.getTime() + extensionAmountMs
+        );
+        // Đảm bảo thời gian kết thúc mới không sớm hơn thời gian kết thúc hiện tại
+        // nếu người dùng đặt giá liên tục trong 1 giờ cuối.
+        if (product.auctionEndTime.getTime() < newCalculatedEndTime.getTime()) {
+          product.auctionEndTime = newCalculatedEndTime;
+        } else {
+          // Nếu thời gian kết thúc hiện tại đã xa hơn 1 giờ từ bây giờ
+          // và vẫn nằm trong 1 giờ cuối (có thể do gia hạn nhiều lần),
+          // bạn có thể chọn gia hạn từ thời điểm kết thúc hiện tại.
+          // Ví dụ: product.auctionEndTime = new Date(product.auctionEndTime.getTime() + extensionAmountMs);
+          // Hoặc giữ nguyên logic đảm bảo nó ít nhất là 1h từ bây giờ.
+          // Với logic hiện tại, nó sẽ gia hạn nếu currentAuctionEndTime < newCalculatedEndTime.
+          // Để đơn giản và hiệu quả nhất, đảm bảo nó luôn là ít nhất 1 giờ từ thời điểm bid:
+          product.auctionEndTime = newCalculatedEndTime;
+        }
+
+        console.log(
+          `Đấu giá sản phẩm ${product.name} được gia hạn. Thời gian kết thúc mới: ${product.auctionEndTime}`
+        );
+      }
+
+      // thêm lượt đấu giá
+      product.bids.unshift({
+        amount: bidData.amount,
+        bidderId: bidData.bidderId,
+        timestamp: new Date(),
+      });
+
+      await product.save();
+
+      resolve({
+        status: "OK",
+        message: "Đặt giá thành công",
+        data: product.bids,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -201,5 +300,6 @@ module.exports = {
   deleteProduct,
   getAllProduct,
   deleteAllProduct,
-  getAllProductCheck
+  getAllProductCheck,
+  placeBid,
 };
