@@ -32,26 +32,50 @@ const createProduct = (newProduct) => {
 };
 
 // Cập nhật sản phẩm
-const updateProduct = (id, data) => {
+const updateProduct = (id, data, userId) => {
+  // <-- THÊM userId
   return new Promise(async (resolve, reject) => {
     try {
-      const CheckProduct = await Product.findOne({ _id: id }); // tạo biến chứa id sản phẩm cần cập nhật
-      // kiểm tra xem sản phẩm có tồn tại hay không
-      if (CheckProduct === null) {
-        resolve({
-          status: "OK", // trạng thái thành công
-          message: "Sản phẩm không được xác định", // thông báo lỗi
+      const product = await Product.findById(id); // <-- SỬA: Đổi tên biến cho rõ ràng hơn
+
+      if (!product) {
+        return resolve({
+          // <-- THÊM return
+          status: "ERR", // <-- SỬA: Trả về ERR khi không tìm thấy sản phẩm
+          message: "Sản phẩm không được tìm thấy.",
         });
       }
-      // nếu sản phẩm tồn tại thì tiến hành cập nhật
+
+      // 2. Kiểm tra quyền sở hữu sản phẩm (RẤT QUAN TRỌNG CHO BẢO MẬT)
+      // Chuyển đổi _iduser về string để so sánh an toàn
+      if (product._iduser.toString() !== userId) {
+        // <-- THÊM LOGIC KIỂM TRA QUYỀN
+        return resolve({
+          // <-- THÊM return
+          status: "ERR",
+          message: "Bạn không có quyền cập nhật sản phẩm này.",
+        });
+      }
+
       const updatedProduct = await Product.findByIdAndUpdate(id, data, {
-        new: true, // trả về sản phẩm đã cập nhật
+        new: true, // Trả về tài liệu đã cập nhật
+        runValidators: true, // <-- THÊM: Đảm bảo chạy các validator trong schema
       });
-      resolve({
-        status: "OK", // trạng thái thành công
-        message: "Thanh công", // thông báo thành công
-        data: updatedProduct, // dữ liệu sản phẩm đã cập nhật
-      });
+
+      // Kiểm tra lại nếu update có vấn đề (trường hợp hiếm)
+      if (updatedProduct) {
+        resolve({
+          status: "OK",
+          message: "Cập nhật sản phẩm thành công.", // <-- SỬA: Lỗi chính tả
+          data: updatedProduct,
+        });
+      } else {
+        // Trường hợp này có thể xảy ra nếu sản phẩm bị xóa giữa chừng sau khi CheckProduct
+        resolve({
+          status: "ERR",
+          message: "Không thể cập nhật sản phẩm.",
+        });
+      }
     } catch (error) {
       reject(error);
     }
@@ -277,6 +301,59 @@ const placeBid = (productId, bidData) => {
   });
 };
 
+// hàm đánh dấu đã mua
+const markProductAsSold = (productId, buyerId, finalPrice) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return resolve({
+          status: "ERR",
+          message: "Sản phẩm không được tìm thấy.",
+        });
+      }
+
+      // *** KHÔNG CẦN KIỂM TRA QUYỀN SỞ HỮU Ở ĐÂY ***
+      // Vì hành động này được kích hoạt bởi người mua hoặc hệ thống
+
+      // Kiểm tra trạng thái hiện tại của sản phẩm để tránh bán một sản phẩm đã bán
+      if (product.status === "sold") {
+        return resolve({
+          status: "ERR",
+          message: "Sản phẩm đã được bán trước đó.",
+        });
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        {
+          status: "sold",
+          _idbuy: buyerId, // ID của người mua
+          finalPrice: finalPrice || product.priceCurrent, // Giá cuối cùng của giao dịch
+          // Bạn có thể thêm các thông tin khác như thời gian bán, v.v.
+        },
+        { new: true, runValidators: true }
+      );
+
+      if (updatedProduct) {
+        resolve({
+          status: "OK",
+          message: "Sản phẩm đã được đánh dấu là đã bán thành công.",
+          data: updatedProduct,
+        });
+      } else {
+        resolve({
+          status: "ERR",
+          message: "Không thể đánh dấu sản phẩm là đã bán.",
+        });
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -285,4 +362,5 @@ module.exports = {
   getAllProduct,
   deleteAllProduct,
   placeBid,
+  markProductAsSold,
 };

@@ -27,5 +27,9 @@ router.delete("/delete/:id", productContronller.deleteProduct);
 router.get("/getproduct", productContronller.getAllProduct);
 router.delete("/deletes", productContronller.deleteAllProduct);
 router.put("/bid/:id", productContronller.placeBid);
-
+router.put(
+  "/mark-as-sold/:id",
+  authUserMiddleware,
+  productContronller.markAsSold
+);
 module.exports = router;

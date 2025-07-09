@@ -20,7 +20,9 @@ const productSchema = new mongoose.Schema(
       },
     ],
     auctionEndTime: { type: Date, default: null }, // Trường mới để lưu thời gian kết thúc đấu giá
+    _idbuy: { type: String },
   },
+
   { timestamps: true }
 );
 
