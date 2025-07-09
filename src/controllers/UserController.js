@@ -19,12 +19,14 @@ const createUser = async (req, res) => {
         status: "ERR",
         message: "The input is required",
       });
-    } else if (!isCheckEmail) {
+    }  
+    if (!isCheckEmail) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is Email UTH",
       });
-    } else if (password !== confirmPassword) {
+    } 
+    if (password !== confirmPassword) {
       return res.status(200).json({
         status: "ERR",
         message: "Xác nhận mật khẩu không đúng",

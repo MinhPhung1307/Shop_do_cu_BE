@@ -103,6 +103,12 @@ const loginUser = (userLogin) => {
                     message: 'Email hoặc mật khẩu không đúng.'
                 })
             }   
+            if(!user.state) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Tài khoản của bạn hiện đang bị khóa.'
+                })
+            }
             const access_token = await genneralAccessToken({
                 id: user._id,
                 isAdmin: user.isAdmin
