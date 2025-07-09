@@ -145,6 +145,19 @@ const getAllProduct = async (req, res) => {
   }
 };
 
+// Lấy tất cả sản phẩm chờ duyệt
+const getAllProductCheck = async (req, res) => {
+  try {
+    const response = await ProductService.getAllProductCheck();
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
 // Xóa sản phẩm
 const deleteAllProduct = async () => {
   try {
@@ -164,5 +177,6 @@ module.exports = {
   getDetailsProduct,
   deleteProduct,
   getAllProduct,
-  deleteAllProduct
+  deleteAllProduct,
+  getAllProductCheck
 };
