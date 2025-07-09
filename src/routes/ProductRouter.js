@@ -32,5 +32,9 @@ router.put("/update-state/:id", authMiddleware, productContronller.updateState);
 
 router.delete("/deletes", productContronller.deleteAllProduct);
 router.put("/bid/:id", productContronller.placeBid);
-
+router.put(
+  "/mark-as-sold/:id",
+  authUserMiddleware,
+  productContronller.markAsSold
+);
 module.exports = router;

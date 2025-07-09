@@ -32,26 +32,50 @@ const createProduct = (newProduct) => {
 };
 
 // Cập nhật sản phẩm
-const updateProduct = (id, data) => {
+const updateProduct = (id, data, userId) => {
+  // <-- THÊM userId
   return new Promise(async (resolve, reject) => {
     try {
-      const CheckProduct = await Product.findOne({ _id: id }); // tạo biến chứa id sản phẩm cần cập nhật
-      // kiểm tra xem sản phẩm có tồn tại hay không
-      if (CheckProduct === null) {
-        resolve({
-          status: "OK", // trạng thái thành công
-          message: "Sản phẩm không được xác định", // thông báo lỗi
+      const product = await Product.findById(id); // <-- SỬA: Đổi tên biến cho rõ ràng hơn
+
+      if (!product) {
+        return resolve({
+          // <-- THÊM return
+          status: "ERR", // <-- SỬA: Trả về ERR khi không tìm thấy sản phẩm
+          message: "Sản phẩm không được tìm thấy.",
         });
       }
-      // nếu sản phẩm tồn tại thì tiến hành cập nhật
+
+      // 2. Kiểm tra quyền sở hữu sản phẩm (RẤT QUAN TRỌNG CHO BẢO MẬT)
+      // Chuyển đổi _iduser về string để so sánh an toàn
+      if (product._iduser.toString() !== userId) {
+        // <-- THÊM LOGIC KIỂM TRA QUYỀN
+        return resolve({
+          // <-- THÊM return
+          status: "ERR",
+          message: "Bạn không có quyền cập nhật sản phẩm này.",
+        });
+      }
+
       const updatedProduct = await Product.findByIdAndUpdate(id, data, {
-        new: true, // trả về sản phẩm đã cập nhật
+        new: true, // Trả về tài liệu đã cập nhật
+        runValidators: true, // <-- THÊM: Đảm bảo chạy các validator trong schema
       });
-      resolve({
-        status: "OK", // trạng thái thành công
-        message: "Thanh công", // thông báo thành công
-        data: updatedProduct, // dữ liệu sản phẩm đã cập nhật
-      });
+
+      // Kiểm tra lại nếu update có vấn đề (trường hợp hiếm)
+      if (updatedProduct) {
+        resolve({
+          status: "OK",
+          message: "Cập nhật sản phẩm thành công.", // <-- SỬA: Lỗi chính tả
+          data: updatedProduct,
+        });
+      } else {
+        // Trường hợp này có thể xảy ra nếu sản phẩm bị xóa giữa chừng sau khi CheckProduct
+        resolve({
+          status: "ERR",
+          message: "Không thể cập nhật sản phẩm.",
+        });
+      }
     } catch (error) {
       reject(error);
     }
@@ -168,25 +192,10 @@ const getAllProductCheck = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const products = await Product.find({ status: "check" });
-      resolve({      
+      resolve({
         status: "OK", // trạng thái thành công
         message: "Thanh công", // thông báo thành công
-        data: products, // dữ liệu sản phẩm 
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
-// thay đổi trạng thái của sản phẩm
-const updateState = (id) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      await Product.findOneAndUpdate({_id: id}, { status: "checked" }, { new: true } );
-      resolve({      
-        status: "OK", // trạng thái thành công
-        message: "Duyệt thành công",
+        data: products, // dữ liệu sản phẩm
       });
     } catch (error) {
       reject(error);
@@ -308,6 +317,58 @@ const placeBid = (productId, bidData) => {
   });
 };
 
+const markAsSold = (productId, _idbuy, price) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Tìm sản phẩm theo ID và cập nhật các trường status, price, và _idbuy
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: productId }, // Điều kiện tìm kiếm: tìm sản phẩm có _id khớp với productId
+        {
+          status: "sold", // Cập nhật trạng thái thành "sold"
+          price: price, // Cập nhật giá cuối cùng
+          _idbuy: _idbuy, // Cập nhật ID của người mua (giả sử tên trường trong ProductModel là _idbuy)
+        },
+        { new: true } // Tùy chọn: trả về tài liệu sau khi đã cập nhật (thay vì tài liệu cũ)
+      );
+
+      // Kiểm tra nếu không tìm thấy sản phẩm
+      if (!updatedProduct) {
+        return resolve({
+          status: "ERR",
+          message: "Không tìm thấy sản phẩm.",
+        });
+      }
+
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Mua thành công", // Thông báo rõ ràng hơn
+        data: updatedProduct, // Có thể trả về dữ liệu sản phẩm đã cập nhật
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Product.findOneAndUpdate(
+        { _id: id },
+        { status: "checked" },
+        { new: true }
+      );
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Duyệt thành công",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -317,5 +378,8 @@ module.exports = {
   deleteAllProduct,
   getAllProductCheck,
   placeBid,
-  updateState
+
+  markAsSold,
+
+  updateState,
 };

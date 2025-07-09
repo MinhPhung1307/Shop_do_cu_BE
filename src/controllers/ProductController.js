@@ -56,26 +56,47 @@ const createProduct = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-// Cập nhật sản phẩm
 const updateProduct = async (req, res) => {
   try {
-    // Lấy productId từ tham số của request
     const productId = req.params.id;
-    // Lấy dữ liệu từ body của request
     const data = req.body;
-    // Kiểm tra xem productId có được cung cấp hay không
+    // Lấy ID người dùng từ req.user (được thêm bởi authUserMiddleware của bạn)
+    // Đảm bảo authUserMiddleware đặt req.user.id
+    const userId = req.user.id; // <-- THÊM DÒNG NÀY
+
     if (!productId) {
-      return res.status(200).json({
-        status: "ERR", // Trạng thái lỗi
-        message: "Không có ProductId", // Thông báo lỗi
+      return res.status(400).json({
+        // <-- SỬA: Dùng 400 Bad Request
+        status: "ERR",
+        message: "Thiếu ProductId trong yêu cầu.",
       });
     }
-    // Gọi Service để cập nhật sản phẩm
-    const response = await ProductService.updateProduct(productId, data);
-    return res.status(200).json(response);
+    // Gọi Service để cập nhật sản phẩm, truyền userId
+    const response = await ProductService.updateProduct(
+      productId,
+      data,
+      userId
+    ); // <-- THÊM userId
+
+    if (response.status === "OK") {
+      return res.status(200).json(response);
+    } else {
+      // Dựa vào thông báo lỗi từ service để trả về status code cụ thể hơn
+      if (response.message.includes("không được tìm thấy")) {
+        // Hoặc "không xác định"
+        return res.status(404).json(response); // 404 Not Found
+      } else if (response.message.includes("không có quyền")) {
+        return res.status(403).json(response); // 403 Forbidden
+      }
+      return res.status(400).json(response); // Các lỗi khác từ service
+    }
   } catch (error) {
-    return res.status(404).json({
-      message: error,
+    console.error("Lỗi server khi cập nhật sản phẩm:", error); // Log chi tiết lỗi
+    return res.status(500).json({
+      // <-- SỬA: 500 Internal Server Error
+      status: "ERR",
+      message: "Lỗi server nội bộ. Vui lòng thử lại sau.",
+      // Trong môi trường dev, có thể thêm: error: error.message
     });
   }
 };
@@ -158,20 +179,6 @@ const getAllProductCheck = async (req, res) => {
   }
 };
 
-// thay đổi trạng thái của sản phẩm
-const updateState = async (req, res) => {
-  try {
-    const product_id = req.params.id; 
-    const response = await ProductService.updateState(product_id);
-    // Trả về kết quả
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(404).json({
-      message: error,
-    });
-  }
-};
-
 // Xóa sản phẩm
 const deleteAllProduct = async () => {
   try {
@@ -211,6 +218,34 @@ const placeBid = async (req, res) => {
     });
   }
 };
+// đánh dấu đã bán
+const markAsSold = async (req, res) => {
+  try {
+    const product_id = req.params.id;
+    const { price, _idbuy } = req.body;
+    const response = await ProductService.markAsSold(product_id, _idbuy, price);
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = async (req, res) => {
+  try {
+    const product_id = req.params.id;
+    const response = await ProductService.updateState(product_id);
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
 
 module.exports = {
   createProduct,
@@ -221,5 +256,6 @@ module.exports = {
   deleteAllProduct,
   getAllProductCheck,
   placeBid,
-  updateState
+  markAsSold,
+  updateState,
 };
