@@ -188,13 +188,13 @@ const getAllProduct = (limit = 2, page = 1, sort = null, filter = null) => {
 };
 
 // Lấy tất cả sản phẩm đang chờ duyệt
-const getAllProductCheck = () => {
+const getAllProductCheck = (type) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const products = await Product.find({ status: "check" });
+      const products = await Product.find({ status: type });
       resolve({
         status: "OK", // trạng thái thành công
-        message: "Thanh công", // thông báo thành công
+        message: "Thành công", // thông báo thành công
         data: products, // dữ liệu sản phẩm
       });
     } catch (error) {
