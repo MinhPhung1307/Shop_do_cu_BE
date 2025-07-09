@@ -179,6 +179,21 @@ const getAllProductCheck = () => {
   });
 };
 
+// thay đổi trạng thái của sản phẩm
+const updateState = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Product.findOneAndUpdate({_id: id}, { status: "checked" }, { new: true } );
+      resolve({      
+        status: "OK", // trạng thái thành công
+        message: "Duyệt thành công",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 // Xóa all sản phẩm
 const deleteAllProduct = () => {
   return new Promise(async (resolve, reject) => {
@@ -302,4 +317,5 @@ module.exports = {
   deleteAllProduct,
   getAllProductCheck,
   placeBid,
+  updateState
 };
