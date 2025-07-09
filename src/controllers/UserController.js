@@ -238,6 +238,28 @@ const getPublicUser = async (req, res) => {
   }
 };
 
+
+// thay đổi trạng thái người dùng
+const updateStateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    if (!userId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The user is required",
+      });
+    }
+    const response = await UserService.updateStateUser(userId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error('Update user error:', error);
+    return res.status(500).json({
+      status: 'ERROR',
+      message: error.message || 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   createUser,
   verifyEmail,
@@ -249,5 +271,6 @@ module.exports = {
   getDetailsUser,
   refreshToken,
   getPublicUser,
-  updatePassword
+  updatePassword,
+  updateStateUser
 };
