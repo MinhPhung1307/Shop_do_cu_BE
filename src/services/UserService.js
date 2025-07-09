@@ -113,7 +113,7 @@ const loginUser = (userLogin) => {
             })
             resolve({
                 status: 'OK',
-                message: 'Cập nhật thông tin thành công',
+                message: 'Đăng nhập thành công',
                 access_token,
                 refresh_token
             }) 
@@ -136,7 +136,7 @@ const updateUser = (id, data) => {
             const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
             resolve({
                 status: 'OK',
-                message: 'SUCCESS',
+                message: 'Cập nhật thông tin thành công',
                 data: updatedUser
             }) 
         } catch (error) {

@@ -187,6 +187,41 @@ const getAllProduct = (limit = 2, page = 1, sort = null, filter = null) => {
   });
 };
 
+// Lấy tất cả sản phẩm đang chờ duyệt
+const getAllProductCheck = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const products = await Product.find({ status: "check" });
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Thanh công", // thông báo thành công
+        data: products, // dữ liệu sản phẩm
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Product.findOneAndUpdate(
+        { _id: id },
+        { status: "checked" },
+        { new: true }
+      );
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Duyệt thành công",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 // Xóa all sản phẩm
 const deleteAllProduct = () => {
   return new Promise(async (resolve, reject) => {
@@ -361,6 +396,10 @@ module.exports = {
   deleteProduct,
   getAllProduct,
   deleteAllProduct,
+  getAllProductCheck,
   placeBid,
+
   markProductAsSold,
+
+  updateState,
 };

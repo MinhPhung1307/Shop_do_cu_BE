@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema(
     used: { type: String, required: true },
     category: { type: String, required: true },
     description: { type: String },
-    status: { type: String, default: "Chờ duyệt" },
+    status: { type: String, default: "check" },
     _iduser: { type: String, required: true },
     // danh sách đấu giá
     bids: [

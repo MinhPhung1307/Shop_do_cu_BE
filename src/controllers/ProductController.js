@@ -166,6 +166,33 @@ const getAllProduct = async (req, res) => {
   }
 };
 
+// Lấy tất cả sản phẩm chờ duyệt
+const getAllProductCheck = async (req, res) => {
+  try {
+    const response = await ProductService.getAllProductCheck();
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = async (req, res) => {
+  try {
+    const product_id = req.params.id;
+    const response = await ProductService.updateState(product_id);
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
 // Xóa sản phẩm
 const deleteAllProduct = async () => {
   try {
@@ -247,6 +274,10 @@ module.exports = {
   deleteProduct,
   getAllProduct,
   deleteAllProduct,
+  getAllProductCheck,
   placeBid,
+
   markAsSold,
+
+  updateState,
 };
