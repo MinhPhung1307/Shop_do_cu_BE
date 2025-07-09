@@ -203,25 +203,6 @@ const getAllProductCheck = () => {
   });
 };
 
-// thay đổi trạng thái của sản phẩm
-const updateState = (id) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      await Product.findOneAndUpdate(
-        { _id: id },
-        { status: "checked" },
-        { new: true }
-      );
-      resolve({
-        status: "OK", // trạng thái thành công
-        message: "Duyệt thành công",
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 // Xóa all sản phẩm
 const deleteAllProduct = () => {
   return new Promise(async (resolve, reject) => {
@@ -336,53 +317,52 @@ const placeBid = (productId, bidData) => {
   });
 };
 
-// hàm đánh dấu đã mua
-const markProductAsSold = (productId, buyerId, finalPrice) => {
+const markAsSold = (productId, _idbuy, price) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const product = await Product.findById(productId);
-
-      if (!product) {
-        return resolve({
-          status: "ERR",
-          message: "Sản phẩm không được tìm thấy.",
-        });
-      }
-
-      // *** KHÔNG CẦN KIỂM TRA QUYỀN SỞ HỮU Ở ĐÂY ***
-      // Vì hành động này được kích hoạt bởi người mua hoặc hệ thống
-
-      // Kiểm tra trạng thái hiện tại của sản phẩm để tránh bán một sản phẩm đã bán
-      if (product.status === "sold") {
-        return resolve({
-          status: "ERR",
-          message: "Sản phẩm đã được bán trước đó.",
-        });
-      }
-
-      const updatedProduct = await Product.findByIdAndUpdate(
-        productId,
+      // Tìm sản phẩm theo ID và cập nhật các trường status, price, và _idbuy
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: productId }, // Điều kiện tìm kiếm: tìm sản phẩm có _id khớp với productId
         {
-          status: "sold",
-          _idbuy: buyerId, // ID của người mua
-          finalPrice: finalPrice || product.priceCurrent, // Giá cuối cùng của giao dịch
-          // Bạn có thể thêm các thông tin khác như thời gian bán, v.v.
+          status: "sold", // Cập nhật trạng thái thành "sold"
+          price: price, // Cập nhật giá cuối cùng
+          _idbuy: _idbuy, // Cập nhật ID của người mua (giả sử tên trường trong ProductModel là _idbuy)
         },
-        { new: true, runValidators: true }
+        { new: true } // Tùy chọn: trả về tài liệu sau khi đã cập nhật (thay vì tài liệu cũ)
       );
 
-      if (updatedProduct) {
-        resolve({
-          status: "OK",
-          message: "Sản phẩm đã được đánh dấu là đã bán thành công.",
-          data: updatedProduct,
-        });
-      } else {
-        resolve({
+      // Kiểm tra nếu không tìm thấy sản phẩm
+      if (!updatedProduct) {
+        return resolve({
           status: "ERR",
-          message: "Không thể đánh dấu sản phẩm là đã bán.",
+          message: "Không tìm thấy sản phẩm.",
         });
       }
+
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Mua thành công", // Thông báo rõ ràng hơn
+        data: updatedProduct, // Có thể trả về dữ liệu sản phẩm đã cập nhật
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Product.findOneAndUpdate(
+        { _id: id },
+        { status: "checked" },
+        { new: true }
+      );
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Duyệt thành công",
+      });
     } catch (error) {
       reject(error);
     }
@@ -399,7 +379,7 @@ module.exports = {
   getAllProductCheck,
   placeBid,
 
-  markProductAsSold,
+  markAsSold,
 
   updateState,
 };

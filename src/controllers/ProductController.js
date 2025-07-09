@@ -179,20 +179,6 @@ const getAllProductCheck = async (req, res) => {
   }
 };
 
-// thay đổi trạng thái của sản phẩm
-const updateState = async (req, res) => {
-  try {
-    const product_id = req.params.id;
-    const response = await ProductService.updateState(product_id);
-    // Trả về kết quả
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(404).json({
-      message: error,
-    });
-  }
-};
-
 // Xóa sản phẩm
 const deleteAllProduct = async () => {
   try {
@@ -235,35 +221,29 @@ const placeBid = async (req, res) => {
 // đánh dấu đã bán
 const markAsSold = async (req, res) => {
   try {
-    const productId = req.params.id;
-    const { buyerId, finalPrice } = req.body; // Lấy ID người mua và giá cuối cùng từ request body
-
-    // Nếu bạn lấy buyerId từ token của người mua đã xác thực:
-    const authenticatedBuyerId = req.user.id; // Nếu authUserMiddleware đã đính kèm req.user.id
-
-    if (!productId || !authenticatedBuyerId) {
-      return res
-        .status(400)
-        .json({ status: "ERR", message: "Thiếu thông tin cần thiết." });
-    }
-
-    // Gọi hàm service mới
-    const response = await ProductService.markProductAsSold(
-      productId,
-      authenticatedBuyerId,
-      finalPrice
-    );
-
-    if (response.status === "OK") {
-      return res.status(200).json(response);
-    } else {
-      return res.status(400).json(response); // Trả về lỗi từ service
-    }
+    const product_id = req.params.id;
+    const { price, _idbuy } = req.body;
+    const response = await ProductService.markAsSold(product_id, _idbuy, price);
+    // Trả về kết quả
+    return res.status(200).json(response);
   } catch (error) {
-    console.error("Lỗi khi đánh dấu sản phẩm đã bán:", error);
-    return res
-      .status(500)
-      .json({ status: "ERR", message: "Lỗi server nội bộ." });
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
+// thay đổi trạng thái của sản phẩm
+const updateState = async (req, res) => {
+  try {
+    const product_id = req.params.id;
+    const response = await ProductService.updateState(product_id);
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
   }
 };
 
@@ -276,8 +256,6 @@ module.exports = {
   deleteAllProduct,
   getAllProductCheck,
   placeBid,
-
   markAsSold,
-
   updateState,
 };
