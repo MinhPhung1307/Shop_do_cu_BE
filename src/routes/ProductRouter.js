@@ -25,6 +25,7 @@ router.put("/update/:id", authUserMiddleware, productContronller.updateProduct);
 router.get("/get-details/:id", productContronller.getDetailsProduct);
 router.delete("/delete/:id", authUserMiddleware, productContronller.deleteProduct);
 router.get("/getproduct", productContronller.getAllProduct);
+router.get("/get-allproduct", authMiddleware, productContronller.getAllProducts);
 
 router.get("/getproduct-check", authMiddleware, productContronller.getAllProductCheck);
 router.put("/update-state/:id", authMiddleware, productContronller.updateState);

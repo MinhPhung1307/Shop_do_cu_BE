@@ -369,6 +369,22 @@ const updateState = (id) => {
   });
 };
 
+// Lấy tất cả sản phẩm
+const getAllProducts = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const products = await Product.find();
+      resolve({
+        status: "OK", // trạng thái thành công
+        message: "Thành công", // thông báo thành công
+        data: products, // dữ liệu sản phẩm
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -378,8 +394,7 @@ module.exports = {
   deleteAllProduct,
   getAllProductCheck,
   placeBid,
-
   markAsSold,
-
   updateState,
+  getAllProducts
 };

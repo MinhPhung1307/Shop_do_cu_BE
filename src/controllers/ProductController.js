@@ -248,6 +248,19 @@ const updateState = async (req, res) => {
   }
 };
 
+// Lấy tất cả sản phẩm
+const getAllProducts = async (req, res) => {
+  try {
+    const response = await ProductService.getAllProducts();
+    // Trả về kết quả
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -259,4 +272,5 @@ module.exports = {
   placeBid,
   markAsSold,
   updateState,
+  getAllProducts
 };
