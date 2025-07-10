@@ -23,13 +23,24 @@ router.post(
 );
 router.put("/update/:id", authUserMiddleware, productContronller.updateProduct);
 router.get("/get-details/:id", productContronller.getDetailsProduct);
-router.delete("/delete/:id", authUserMiddleware, productContronller.deleteProduct);
+router.delete(
+  "/delete/:id",
+  authUserMiddleware,
+  productContronller.deleteProduct
+);
 router.get("/getproduct", productContronller.getAllProduct);
-router.get("/get-allproduct", authMiddleware, productContronller.getAllProducts);
+router.get(
+  "/get-allproduct",
+  authMiddleware,
+  productContronller.getAllProducts
+);
 
-router.get("/getproduct-check", authMiddleware, productContronller.getAllProductCheck);
+router.get(
+  "/getproduct-check",
+  authMiddleware,
+  productContronller.getAllProductCheck
+);
 router.put("/update-state/:id", authMiddleware, productContronller.updateState);
-
 
 router.delete("/deletes", productContronller.deleteAllProduct);
 router.put("/bid/:id", productContronller.placeBid);
@@ -38,4 +49,9 @@ router.put(
   authUserMiddleware,
   productContronller.markAsSold
 );
+// Lấy sản phẩm đang đấu giá
+router.get("/auction", productContronller.getAuctionProducts);
+// Hủy đơn
+router.put("/cancel-bid/:id", productContronller.cancelBid);
+
 module.exports = router;

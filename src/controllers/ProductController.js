@@ -1,4 +1,5 @@
 const ProductService = require("../services/ProductService");
+const Product = require("../models/ProductModel");
 const fs = require("fs");
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
@@ -169,7 +170,7 @@ const getAllProduct = async (req, res) => {
 // Lấy tất cả sản phẩm theo kiểu truyền vào
 const getAllProductCheck = async (req, res) => {
   try {
-    const type = req.query.type
+    const type = req.query.type;
     const response = await ProductService.getAllProductCheck(type);
     // Trả về kết quả
     return res.status(200).json(response);
@@ -261,6 +262,45 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+// Lấy sản phẩm đang đấu giá
+const getAuctionProducts = async (req, res) => {
+  try {
+    // Lấy sản phẩm có status là "checked" và thời gian đấu giá chưa kết thúc
+    const now = new Date();
+    const products = await Product.find({
+      status: "checked",
+      auctionEndTime: { $gt: now },
+    });
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+// Hủy đơn đấu giá
+const cancelBid = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { userId } = req.body;
+    if (!productId || !userId) {
+      return res.status(400).json({ message: "Thiếu thông tin" });
+    }
+    // Tìm sản phẩm
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    }
+    // Xóa bid của user khỏi mảng bids
+    product.bids = product.bids.filter(
+      (bid) => String(bid.bidderId) !== String(userId)
+    );
+    await product.save();
+    return res.status(200).json({ message: "Đã hủy đơn thành công" });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -272,5 +312,7 @@ module.exports = {
   placeBid,
   markAsSold,
   updateState,
-  getAllProducts
+  getAuctionProducts,
+  getAllProducts,
+  cancelBid
 };
