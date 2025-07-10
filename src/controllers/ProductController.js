@@ -169,7 +169,7 @@ const getAllProduct = async (req, res) => {
 // Lấy tất cả sản phẩm theo kiểu truyền vào
 const getAllProductCheck = async (req, res) => {
   try {
-    const type = req.query.type
+    const type = req.query.type;
     const response = await ProductService.getAllProductCheck(type);
     // Trả về kết quả
     return res.status(200).json(response);
@@ -261,6 +261,35 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+const getProductsByIds = async (req, res) => {
+  try {
+    const idsString = req.query.ids; // Lấy chuỗi ID từ query parameter
+    if (!idsString) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Thiếu danh sách ID sản phẩm.",
+      });
+    }
+
+    const productIds = idsString.split(","); // Chuyển chuỗi ID thành mảng
+    // Đảm bảo các ID là hợp lệ (ví dụ: chuyển đổi thành ObjectId nếu cần)
+    const validProductIds = productIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
+
+    // Gọi service để lấy các sản phẩm
+    const response = await ProductService.getProductsByIds(validProductIds); // Giả định ProductService có hàm này
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi getProductsByIds:", error);
+    return res.status(500).json({
+      status: "ERR",
+      message: error.message || "Lỗi server khi lấy sản phẩm theo ID.",
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -272,5 +301,6 @@ module.exports = {
   placeBid,
   markAsSold,
   updateState,
-  getAllProducts
+  getAllProducts,
+  getProductsByIds,
 };

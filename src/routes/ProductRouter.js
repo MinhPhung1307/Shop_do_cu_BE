@@ -4,6 +4,7 @@ const productContronller = require("../controllers/ProductController");
 const {
   authMiddleware,
   authUserMiddleware,
+  authLoggedInUser,
 } = require("../middleware/authMiddleware");
 const multer = require("multer");
 
@@ -23,19 +24,30 @@ router.post(
 );
 router.put("/update/:id", authUserMiddleware, productContronller.updateProduct);
 router.get("/get-details/:id", productContronller.getDetailsProduct);
-router.delete("/delete/:id", authUserMiddleware, productContronller.deleteProduct);
+router.delete(
+  "/delete/:id",
+  authUserMiddleware,
+  productContronller.deleteProduct
+);
 router.get("/getproduct", productContronller.getAllProduct);
-router.get("/get-allproduct", authMiddleware, productContronller.getAllProducts);
+router.get(
+  "/get-allproduct",
+  authMiddleware,
+  productContronller.getAllProducts
+);
 
-router.get("/getproduct-check", authMiddleware, productContronller.getAllProductCheck);
+router.get(
+  "/getproduct-check",
+  authMiddleware,
+  productContronller.getAllProductCheck
+);
 router.put("/update-state/:id", authMiddleware, productContronller.updateState);
-
 
 router.delete("/deletes", productContronller.deleteAllProduct);
 router.put("/bid/:id", productContronller.placeBid);
 router.put(
   "/mark-as-sold/:id",
-  authUserMiddleware,
+  authLoggedInUser,
   productContronller.markAsSold
 );
 module.exports = router;

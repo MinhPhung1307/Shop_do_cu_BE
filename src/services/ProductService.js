@@ -396,5 +396,5 @@ module.exports = {
   placeBid,
   markAsSold,
   updateState,
-  getAllProducts
+  getAllProducts,
 };

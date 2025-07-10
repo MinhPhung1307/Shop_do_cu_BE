@@ -19,13 +19,13 @@ const createUser = async (req, res) => {
         status: "ERR",
         message: "The input is required",
       });
-    }  
+    }
     if (!isCheckEmail) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is Email UTH",
       });
-    } 
+    }
     if (password !== confirmPassword) {
       return res.status(200).json({
         status: "ERR",
@@ -104,10 +104,10 @@ const updateUser = async (req, res) => {
     const response = await UserService.updateUser(userId, data);
     return res.status(200).json(response);
   } catch (error) {
-    console.error('Update user error:', error);
+    console.error("Update user error:", error);
     return res.status(500).json({
-      status: 'ERROR',
-      message: error.message || 'Internal server error'
+      status: "ERROR",
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -116,7 +116,7 @@ const updatePassword = async (req, res) => {
   try {
     const userId = req.params.id;
     const data = req.body;
-    const { newPassword, confirmPassword } = data
+    const { newPassword, confirmPassword } = data;
     if (!userId) {
       return res.status(200).json({
         status: "ERR",
@@ -132,10 +132,10 @@ const updatePassword = async (req, res) => {
     const response = await UserService.updatePassword(userId, data);
     return res.status(200).json(response);
   } catch (error) {
-    console.error('Update user error:', error);
+    console.error("Update user error:", error);
     return res.status(500).json({
-      status: 'ERROR',
-      message: error.message || 'Internal server error'
+      status: "ERROR",
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -217,7 +217,9 @@ const getPublicUser = async (req, res) => {
       });
     }
 
-    const user = await User.findById(id).select("_id name avatar");
+    const user = await User.findById(id).select(
+      "_id name avatar _idProductlike"
+    );
     if (!user) {
       return res.status(404).json({
         status: "ERR",
@@ -238,7 +240,6 @@ const getPublicUser = async (req, res) => {
   }
 };
 
-
 // thay đổi trạng thái người dùng
 const updateStateUser = async (req, res) => {
   try {
@@ -252,10 +253,60 @@ const updateStateUser = async (req, res) => {
     const response = await UserService.updateStateUser(userId);
     return res.status(200).json(response);
   } catch (error) {
-    console.error('Update user error:', error);
+    console.error("Update user error:", error);
     return res.status(500).json({
-      status: 'ERROR',
-      message: error.message || 'Internal server error'
+      status: "ERROR",
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+const addcart = async (req, res) => {
+  try {
+    const product_id = req.params.id; // Lấy product_id từ URL params
+    // authUserMiddleware sẽ gắn thông tin người dùng vào req.user (bao gồm id)
+    const userId = req.user.id; // Lấy userId từ req được xác thực bởi middleware
+
+    if (!product_id || !userId) {
+      return res.status(400).json({
+        // Nên trả về 400 Bad Request nếu thiếu dữ liệu
+        status: "ERR",
+        message: "Thiếu ID sản phẩm hoặc ID người dùng.",
+      });
+    }
+
+    // Gọi UserService.addcart và truyền cả product_id và userId
+    const response = await UserService.addcart(product_id, userId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong UserController.addcart:", error);
+    return res.status(500).json({
+      // Trả về 500 Internal Server Error cho các lỗi không mong muốn
+      status: "ERR",
+      message: error.message || "Lỗi server khi thêm sản phẩm vào giỏ hàng.",
+    });
+  }
+};
+
+const removeProductFromLike = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const userId = req.params.userId;
+
+    if (!productId || !userId) {
+      return res.status(400).json({
+        status: "ERR",
+        message: "Thiếu ID sản phẩm hoặc ID người dùng.",
+      });
+    }
+
+    const response = await UserService.removeProductFromLike(productId, userId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Lỗi trong removeProductFromLike:", error);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Lỗi server khi xóa sản phẩm khỏi danh sách.",
     });
   }
 };
@@ -272,5 +323,7 @@ module.exports = {
   refreshToken,
   getPublicUser,
   updatePassword,
-  updateStateUser
+  updateStateUser,
+  addcart,
+  removeProductFromLike,
 };
