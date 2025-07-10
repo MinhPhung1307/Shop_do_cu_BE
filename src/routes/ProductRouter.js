@@ -50,4 +50,9 @@ router.put(
   authLoggedInUser,
   productContronller.markAsSold
 );
+// Lấy sản phẩm đang đấu giá
+router.get("/auction", productContronller.getAuctionProducts);
+// Hủy đơn
+router.put("/cancel-bid/:id", productContronller.cancelBid);
+
 module.exports = router;
