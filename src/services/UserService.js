@@ -103,6 +103,12 @@ const loginUser = (userLogin) => {
                     message: 'Email hoặc mật khẩu không đúng.'
                 })
             }   
+            if(!user.state) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Tài khoản của bạn hiện đang bị khóa.'
+                })
+            }
             const access_token = await genneralAccessToken({
                 id: user._id,
                 isAdmin: user.isAdmin
@@ -190,7 +196,7 @@ const deleteUser = (id) => {
             await User.findByIdAndDelete(id);
             resolve({
                 status: 'OK',
-                message: 'delete user is success',
+                message: 'Xóa người dùng thành công',
             }) 
         } catch (error) {
             reject(error)
@@ -234,6 +240,27 @@ const getDetailsUser = (id) => {
     })
 }
 
+const updateStateUser = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({_id: id})
+            if(user === null) {
+                resolve({
+                    status: 'OK',
+                    message: 'Người dùng không được xác định'
+                })
+            }
+            await User.findByIdAndUpdate(id, {state : !user.state}, { new: true });
+            resolve({
+                status: 'OK',
+                message: 'Cập nhập trạng thái thành công',
+            }) 
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 module.exports = {    
     createUser,
     verifyEmail,
@@ -242,5 +269,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    updatePassword
+    updatePassword,
+    updateStateUser
 }

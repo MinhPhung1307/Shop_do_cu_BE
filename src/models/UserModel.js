@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     avatar: { type: String, default: "" },
     _idProductlike: [{ type: String }],
+    state: { type: Boolean, default: true },
   },
   {
     timestamps: true,
