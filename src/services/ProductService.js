@@ -119,7 +119,16 @@ const deleteProduct = (id) => {
         });
       }
       // nếu sản phẩm tồn tại thì tiến hành xóa
-      await Product.findByIdAndDelete(id);
+      updatedProduct = await Product.findByIdAndDelete(id);
+      // THÔNG BÁO: Duyệt Không Thành Công
+      await Notification.create({
+        recipientId: updatedProduct._iduser, // ID của người bán
+        type: "product_approved",
+        title: "Sản phẩm không được duyệt!",
+        message: `Sản phẩm của bạn "${updatedProduct.name}" không được duyệt`,
+        productId: updatedProduct._id,
+        // Nếu bạn có OrderId liên quan đến giao dịch này, hãy thêm vào đây
+      });
       resolve({
         status: "OK", // trạng thái thành công
         message: "Xóa sản phẩm thành công", // thông báo thành công
@@ -400,7 +409,7 @@ const updateState = async (id) => {
     // THÔNG BÁO: Duyệt Thành Công
     await Notification.create({
       recipientId: updatedProduct._iduser, // ID của người bán
-      type: "purchase_success",
+      type: "product_approved",
       title: "Sản phẩm duyệt thành công!",
       message: `Sản phẩm của bạn "${updatedProduct.name}" Đã được duyệt`,
       productId: updatedProduct._id,
