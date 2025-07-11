@@ -15,7 +15,6 @@ const notificationSchema = new mongoose.Schema(
         "product_approved", // Để người bán biết sản phẩm của họ được quản trị viên duyệt
         "product_rejected", // Để người bán biết sản phẩm của họ bị quản trị viên từ chối
       ],
-      required: true,
     },
     title: { type: String, required: true },
     message: { type: String, required: true },
