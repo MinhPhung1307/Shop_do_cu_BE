@@ -300,6 +300,27 @@ const cancelBid = async (req, res) => {
   }
 };
 
+//Lấy sản phẩm đã mua
+const getBoughtProducts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Thiếu userId" });
+    }
+
+    const products = await Product.find({
+      status: "sold",
+      _idbuy: userId,
+    });
+
+    return res.status(200).json(products);
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+
 const getProductsByIds = async (req, res) => {
   try {
     const idsString = req.query.ids; // Lấy chuỗi ID từ query parameter
@@ -344,4 +365,5 @@ module.exports = {
   getAuctionProducts,
   cancelBid,
   getProductsByIds,
+  getBoughtProducts,
 };

@@ -54,5 +54,7 @@ router.put(
 router.get("/auction", productContronller.getAuctionProducts);
 // Hủy đơn
 router.put("/cancel-bid/:id", productContronller.cancelBid);
+// Lấy sản phẩm đã mua
+router.get("/bought-by-user/:userId", productContronller.getBoughtProducts);
 
 module.exports = router;
