@@ -125,7 +125,7 @@ const deleteProduct = (id) => {
         recipientId: updatedProduct._iduser, // ID của người bán
         type: "product_approved",
         title: "Sản phẩm không được duyệt!",
-        message: `Sản phẩm của bạn "${updatedProduct.name}" không được duyệt`,
+        message: `Sản phẩm của bạn "${updatedProduct.name}" đã bị xóa`,
         productId: updatedProduct._id,
         // Nếu bạn có OrderId liên quan đến giao dịch này, hãy thêm vào đây
       });
