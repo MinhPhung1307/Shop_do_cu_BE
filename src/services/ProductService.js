@@ -1,5 +1,6 @@
 const Product = require("../models/ProductModel");
-
+const Notification = require("../models/NotificationModel");
+const User = require("../models/UserModel");
 // Tao sản phẩm mới
 const createProduct = (newProduct) => {
   return new Promise(async (resolve, reject) => {
@@ -243,8 +244,6 @@ const placeBid = (productId, bidData) => {
           ? Math.max(...product.bids.map((b) => b.amount))
           : minStartingBid; // Nếu chưa có bid, giá cao nhất để so sánh là giá sàn khởi điểm
 
-      // --- Bắt đầu các điều kiện kiểm tra giá thầu ---
-
       // 1. Kiểm tra giá thầu tối đa: Không được lớn hơn product.price (giá mua ngay)
       if (bidData.amount > product.price) {
         return resolve({
@@ -266,7 +265,6 @@ const placeBid = (productId, bidData) => {
         });
       }
 
-      // --- Kết thúc các điều kiện kiểm tra giá thầu ---
       const timeLeftMs =
         currentAuctionEndTime.getTime() - currentTime.getTime();
       const oneHourInMs = 60 * 60 * 1000;
@@ -305,7 +303,19 @@ const placeBid = (productId, bidData) => {
       });
 
       await product.save();
-
+      // THÔNG BÁO: Lượt đấu giá mới cho người bán
+      await Notification.create({
+        recipientId: product._iduser, // ID của người bán (chủ sản phẩm)
+        senderId: bidData.bidderId, // ID của người đặt giá
+        type: "new_bid",
+        title: "Có một lượt đấu giá mới!",
+        message: `Sản phẩm "${
+          product.name
+        }" của bạn vừa nhận được một lượt đấu giá mới với giá ${bidData.amount.toLocaleString(
+          "vi-VN"
+        )} VND.`,
+        productId: product._id,
+      });
       resolve({
         status: "OK",
         message: "Đặt giá thành công",
@@ -338,6 +348,35 @@ const markAsSold = (productId, _idbuy, price) => {
           message: "Không tìm thấy sản phẩm.",
         });
       }
+      // THÔNG BÁO: Sản phẩm của người bán đã được bán
+      if (updatedProduct._iduser) {
+        // Đảm bảo người bán tồn tại
+        await Notification.create({
+          recipientId: updatedProduct._iduser, // ID của người bán
+          senderId: _idbuy, // ID của người mua
+          type: "seller_product_sold",
+          title: "Sản phẩm của bạn đã được bán!",
+          message: `Sản phẩm "${
+            updatedProduct.name
+          }" của bạn đã được bán thành công với giá ${price.toLocaleString(
+            "vi-VN"
+          )} VND.`,
+          productId: updatedProduct._id,
+          // Nếu bạn có OrderId liên quan đến giao dịch này, hãy thêm vào đây
+        });
+      }
+      // THÔNG BÁO: Mua hàng thành công cho người mua
+      await Notification.create({
+        recipientId: _idbuy, // ID của người mua
+        senderId: updatedProduct._iduser, // ID của người bán
+        type: "purchase_success",
+        title: "Mua hàng thành công!",
+        message: `Bạn đã mua thành công sản phẩm "${
+          updatedProduct.name
+        }" với giá ${price.toLocaleString("vi-VN")} VND.`,
+        productId: updatedProduct._id,
+        // Nếu bạn có OrderId liên quan đến giao dịch này, hãy thêm vào đây
+      });
 
       resolve({
         status: "OK", // trạng thái thành công
@@ -350,23 +389,28 @@ const markAsSold = (productId, _idbuy, price) => {
   });
 };
 
-// thay đổi trạng thái của sản phẩm
-const updateState = (id) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      await Product.findOneAndUpdate(
-        { _id: id },
-        { status: "checked" },
-        { new: true }
-      );
-      resolve({
-        status: "OK", // trạng thái thành công
-        message: "Duyệt thành công",
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
+const updateState = async (id) => {
+  try {
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: id },
+      { status: "checked" },
+      { new: true }
+    );
+
+    // THÔNG BÁO: Duyệt Thành Công
+    await Notification.create({
+      recipientId: updatedProduct._iduser, // ID của người bán
+      type: "purchase_success",
+      title: "Sản phẩm duyệt thành công!",
+      message: `Sản phẩm của bạn "${updatedProduct.name}" Đã được duyệt`,
+      productId: updatedProduct._id,
+      // Nếu bạn có OrderId liên quan đến giao dịch này, hãy thêm vào đây
+    });
+
+    return { status: "OK", message: "Duyệt thành công" };
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Lấy tất cả sản phẩm
