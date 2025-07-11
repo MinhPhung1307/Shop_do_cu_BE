@@ -27,4 +27,10 @@ router.post(
   NotificationController.createNotification
 );
 
+// xóa 1 thông báo mới
+router.delete(
+  "/delete/:id",
+  NotificationController.deleteNotification
+);
+
 module.exports = router;

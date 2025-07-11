@@ -68,8 +68,31 @@ const createNotification = (data) => {
   });
 };
 
+// Xóa sản phẩm
+const deleteNotification = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const CheckNotify = await Notification.findOne({ _id: id }); 
+      if (CheckNotify === null) {
+        resolve({
+          status: "OK", // trạng thái thành công
+          message: "Thông báo không được xác định", // thông báo lỗi
+        });
+      }
+      deleteNotify = await Notification.findByIdAndDelete(id);
+      resolve({
+        status: "OK", 
+        message: "Xóa thông báo thành công", 
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
-  createNotification
+  createNotification,
+  deleteNotification
 };

@@ -35,8 +35,29 @@ const createNotification = async (req, res) => {
   }
 };
 
+// Xóa thông báo
+const deleteNotification = async (req, res) => {
+  try {
+    const notifyId = req.params.id;
+    if (!notifyId) {
+      return res.status(200).json({
+        status: "ERR", // Trạng thái lỗi
+        message: "Không có ProductId", // Thông báo lỗi
+      });
+    }
+    // Gọi Service để xóa thông báo
+    const response = await NotificationService.deleteNotification(notifyId);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).json({
+      message: error,
+    });
+  }
+};
+
 module.exports = {
   getNotificationsByUserId,
   markNotificationAsRead,
   createNotification,
+  deleteNotification,
 };
