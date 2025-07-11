@@ -1,5 +1,6 @@
 // services/NotificationService.js
 const Notification = require("../models/NotificationModel"); // Đảm bảo đường dẫn đúng
+const User = require("../models/UserModel"); 
 
 const getNotifications = (userId) => {
   return new Promise(async (resolve, reject) => {
@@ -45,7 +46,30 @@ const markAsRead = (notificationId) => {
   });
 };
 
+const createNotification = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const admin = await User.findOne({email: "admin"})
+      const notifications = await Notification.create({
+        recipientId: admin._id,
+        senderId: data.senderId,
+        title: data.title,
+        message: data.message,
+        productId: data.productId,
+      })
+      resolve({
+        status: "OK",
+        message: "Báo cáo thành công",
+        data: notifications,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
+  createNotification
 };

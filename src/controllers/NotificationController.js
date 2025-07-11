@@ -24,7 +24,19 @@ const markNotificationAsRead = async (req, res) => {
   }
 };
 
+
+const createNotification = async (req, res) => {
+  try {
+    const data = req.body;
+    const response = await NotificationService.createNotification(data);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({ message: e.message });
+  }
+};
+
 module.exports = {
   getNotificationsByUserId,
   markNotificationAsRead,
+  createNotification,
 };
