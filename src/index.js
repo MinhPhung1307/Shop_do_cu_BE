@@ -20,6 +20,8 @@ mongoose
   .then(() => console.log("Connected DB!"))
   .catch(() => console.log("Connect failure!"));
 
+
+app.use("/uploads", express.static("uploads"));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
@@ -29,5 +31,3 @@ routes(app);
 app.listen(PORT, () => {
   console.log(`Server is running in port: ${PORT}`);
 });
-
-app.use("/uploads", express.static("uploads"));
