@@ -144,7 +144,13 @@ const updateUser = (id, data) => {
           message: "The user is not defined",
         });
       }
-      const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+      // map image => avatar nếu có
+      const updateData = {
+        ...data,
+        ...(data.image?.trim() ? { avatar: data.image } : {})  // đảm bảo không ghi đè nếu image rỗng
+      };
+      delete updateData.image;
+      const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
       resolve({
         status: "OK",
         message: "Cập nhật thông tin thành công",
