@@ -218,7 +218,7 @@ const getPublicUser = async (req, res) => {
     }
 
     const user = await User.findById(id).select(
-      "_id name avatar _idProductlike"
+      "_id name avatar _idProductlike phone"
     );
     if (!user) {
       return res.status(404).json({
