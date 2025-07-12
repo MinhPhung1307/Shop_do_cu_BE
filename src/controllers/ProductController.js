@@ -4,14 +4,12 @@ const fs = require("fs");
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
   try {
-    // Nếu sử dụng Cloudinary, req.files sẽ chứa thông tin từ Cloudinary
+    // Nếu dùng multer, req.files là mảng các file ảnh
     const images = req.files
       ? req.files.map((file) => file.path)
       : req.body.images;
-
     const { name, price, used, category, description, _iduser } = req.body;
-    const priceNumber = Number(price);
-
+    const priceNumber = Number(price); // chuyển sang số
     if (
       !images ||
       images.length === 0 ||
@@ -21,11 +19,21 @@ const createProduct = async (req, res) => {
       !category ||
       !_iduser
     ) {
+      if (req.files) {
+        // forEach là phương thức duyệt qua từng phần tử
+        req.files.forEach((file) => {
+          try {
+            // xóa file khi đăng thất bại
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error("Xóa file thất bại:", file.path);
+          }
+        });
+      }
       return res
         .status(400)
         .json({ status: "ERR", message: "Missing required fields" });
     }
-
     const product = await ProductService.createProduct({
       images,
       name,
@@ -35,10 +43,17 @@ const createProduct = async (req, res) => {
       description,
       _iduser,
     });
-
     return res.status(201).json(product);
   } catch (error) {
     console.log(error);
+    // XÓA FILE nếu có lỗi trong quá trình tạo sản phẩm
+    if (req.files) {
+      req.files.forEach((file) => {
+        fs.unlink(file.path, (err) => {
+          if (err) console.error("Xóa file thất bại:", file.path);
+        });
+      });
+    }
     return res.status(500).json({ message: "Internal server error" });
   }
 };
