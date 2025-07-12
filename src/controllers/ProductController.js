@@ -320,6 +320,7 @@ const getBoughtProducts = async (req, res) => {
   }
 };
 
+
 const getProductsByIds = async (req, res) => {
   try {
     const idsString = req.query.ids; // Lấy chuỗi ID từ query parameter
